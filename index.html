@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Property Interest Form</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    
+    <!-- Settings Button -->
+    <button id="adminBtn" class="fixed top-4 right-4 bg-gray-800 hover:bg-gray-900 text-white p-3 rounded-full shadow-lg transition z-50">
+        ⚙️
+    </button>
+
+    <!-- Main Form Container -->
+    <div id="mainForm" class="min-h-screen flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full">
+            <div class="flex items-center justify-center mb-6">
+                <div class="bg-blue-600 rounded-full p-4">
+                    <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                    </svg>
+                </div>
+            </div>
+
+            <h1 class="text-3xl font-bold text-center text-gray-800 mb-2">
+                Interested In This Property?
+            </h1>
+            <p class="text-center text-gray-600 mb-8">
+                Enter your information to receive complete property details and listing information
+            </p>
+
+            <form id="leadForm" class="space-y-5">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
+                    <input type="text" name="name" required
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                        placeholder="John Smith">
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                        <input type="tel" name="phone"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                            placeholder="(555) 123-4567">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
+                        <input type="email" name="email" required
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                            placeholder="john@example.com">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Budget Range</label>
+                    <select name="budget" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="">Select your budget</option>
+                        <option value="under-300k">Under $300,000</option>
+                        <option value="300k-500k">$300,000 - $500,000</option>
+                        <option value="500k-750k">$500,000 - $750,000</option>
+                        <option value="750k-1m">$750,000 - $1,000,000</option>
+                        <option value="1m-1.5m">$1,000,000 - $1,500,000</option>
+                        <option value="1.5m-2m">$1,500,000 - $2,000,000</option>
+                        <option value="over-2m">Over $2,000,000</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Area(s) Looking In</label>
+                    <input type="text" name="area"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                        placeholder="e.g., Downtown, Suburbs, Waterfront">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Purchase Timeframe</label>
+                    <select name="timeframe" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="">Select timeframe</option>
+                        <option value="asap">ASAP (Ready to buy now)</option>
+                        <option value="1-3-months">1-3 Months</option>
+                        <option value="3-6-months">3-6 Months</option>
+                        <option value="6-12-months">6-12 Months</option>
+                        <option value="over-year">Over a Year</option>
+                        <option value="browsing">Just Browsing</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Interest Level</label>
+                    <div class="grid grid-cols-3 gap-3">
+                        <button type="button" data-interest="High" class="interest-btn py-3 px-4 rounded-lg font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">High</button>
+                        <button type="button" data-interest="Medium" class="interest-btn py-3 px-4 rounded-lg font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">Medium</button>
+                        <button type="button" data-interest="Low" class="interest-btn py-3 px-4 rounded-lg font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">Low</button>
+                    </div>
+                    <input type="hidden" name="interestLevel" id="interestLevel">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Do you currently have a real estate agent?</label>
+                    <div class="grid grid-cols-3 gap-3">
+                        <button type="button" data-agent="Yes" class="agent-btn py-3 px-4 rounded-lg font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">Yes</button>
+                        <button type="button" data-agent="No" class="agent-btn py-3 px-4 rounded-lg font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">No</button>
+                        <button type="button" data-agent="Not Sure" class="agent-btn py-3 px-4 rounded-lg font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">Not Sure</button>
+                    </div>
+                    <input type="hidden" name="hasAgent" id="hasAgent">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Comments or Questions About This Property</label>
+                    <textarea name="comments" rows="4"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                        placeholder="Any questions, comments, or what you're looking for in a property?"></textarea>
+                    <p class="text-xs text-gray-500 mt-1">Optional - helps us serve you better</p>
+                </div>
+
+                <button type="submit"
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 rounded-lg shadow-lg hover:shadow-xl flex items-center justify-center gap-2">
+                    Get Complete Property Details →
+                </button>
+
+                <p class="text-xs text-gray-500 text-center mt-4">
+                    By submitting, you agree to receive property information and follow-up communications.
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Panel (Hidden by default) -->
+    <div id="adminPanel" class="hidden min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full max-h-screen overflow-y-auto">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">⚙️ Admin Panel</h2>
+                <button id="closeAdmin" class="text-gray-500 hover:text-gray-700 text-2xl">×</button>
+            </div>
+            
+            <div id="passwordSection">
+                <p class="text-gray-600 mb-4">Enter password to edit listing details:</p>
+                <input type="password" id="adminPassword"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none mb-4"
+                    placeholder="Enter admin password">
+                <button id="loginBtn"
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg">
+                    Login
+                </button>
+                <p class="text-xs text-gray-500 text-center mt-2">Default password: openhouse2024</p>
+            </div>
+
+            <div id="editSection" class="hidden space-y-4">
+                <!-- Property details form will be here -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Property Address</label>
+                    <input type="text" id="editAddress" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Price</label>
+                        <input type="text" id="editPrice" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">MLS Number</label>
+                        <input type="text" id="editMLS" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                    </div>
+                </div>
+                <!-- Add more fields as needed -->
+                <button id="saveBtn"
+                    class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg">
+                    💾 Save Listing Details
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Screen (Hidden by default) -->
+    <div id="successScreen" class="hidden"></div>
+
+    <script>
+        // Configuration - CHANGE THESE VALUES
+        const ADMIN_PASSWORD = 'openhouse2024';
+        const GOOGLE_SCRIPT_URL = 'YOUR_GOOGLE_SCRIPT_URL_HERE';
+
+        // Default listing details
+        let listingDetails = localStorage.getItem('listingDetails') 
+            ? JSON.parse(localStorage.getItem('listingDetails'))
+            : {
+                address: "123 Main Street, Portland, OR 97201",
+                price: "$749,000",
+                beds: "4",
+                baths: "3",
+                sqft: "2,450",
+                yearBuilt: "2015",
+                features: ["Updated Kitchen", "Hardwood Floors", "Fenced Yard"],
+                description: "Beautiful home in prime location.",
+                mlsNumber: "12345678",
+                agentName: "Your Name",
+                agentPhone: "(555) 123-4567",
+                agentEmail: "agent@realty.com"
+            };
+
+        // Button handlers for Interest Level
+        document.querySelectorAll('.interest-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.interest-btn').forEach(b => {
+                    b.classList.remove('bg-blue-600', 'text-white');
+                    b.classList.add('bg-gray-100', 'text-gray-700');
+                });
+                this.classList.remove('bg-gray-100', 'text-gray-700');
+                this.classList.add('bg-blue-600', 'text-white');
+                document.getElementById('interestLevel').value = this.dataset.interest;
+            });
+        });
+
+        // Button handlers for Agent Status
+        document.querySelectorAll('.agent-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.agent-btn').forEach(b => {
+                    b.classList.remove('bg-blue-600', 'text-white');
+                    b.classList.add('bg-gray-100', 'text-gray-700');
+                });
+                this.classList.remove('bg-gray-100', 'text-gray-700');
+                this.classList.add('bg-blue-600', 'text-white');
+                document.getElementById('hasAgent').value = this.dataset.agent;
+            });
+        });
+
+        // Form submission
+        document.getElementById('leadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const data = {
+                timestamp: new Date().toLocaleString(),
+                name: formData.get('name'),
+                email: formData.get('email'),
+                phone: formData.get('phone') || 'Not provided',
+                budget: formData.get('budget') || 'Not provided',
+                area: formData.get('area') || 'Not provided',
+                timeframe: formData.get('timeframe') || 'Not provided',
+                interestLevel: formData.get('interestLevel') || 'Not provided',
+                hasAgent: formData.get('hasAgent') || 'Not provided',
+                comments: formData.get('comments') || 'None',
+                ...listingDetails
+            };
+
+            // Calculate lead score
+            let score = 50;
+            if (data.interestLevel === 'High') score += 30;
+            else if (data.interestLevel === 'Medium') score += 15;
+            if (data.timeframe === 'asap') score += 25;
+            else if (data.timeframe === '1-3-months') score += 20;
+            if (data.hasAgent === 'No') score += 20;
+            else if (data.hasAgent === 'Not Sure') score += 10;
+
+            let label = '❄️ COLD LEAD';
+            if (score >= 90) label = '🔥 HOT LEAD';
+            else if (score >= 70) label = '⭐ WARM LEAD';
+            else if (score >= 50) label = '📧 NURTURE LEAD';
+
+            data.priorityLabel = label;
+            data.score = score;
+
+            console.log('Lead captured:', data);
+
+            // Send to Google Sheets
+            try {
+                await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+            } catch (error) {
+                console.error('Error:', error);
+            }
+
+            // Show success screen
+            showSuccessScreen(data);
+        });
+
+        function showSuccessScreen(data) {
+            document.getElementById('mainForm').classList.add('hidden');
+            document.getElementById('successScreen').classList.remove('hidden');
+            document.getElementById('successScreen').innerHTML = `
+                <div class="min-h-screen flex items-center justify-center p-4">
+                    <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-3xl w-full">
+                        <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <span class="text-4xl">✓</span>
+                        </div>
+                        <h2 class="text-3xl font-bold text-gray-800 mb-4 text-center">Thank You, ${data.name}!</h2>
+                        <p class="text-gray-600 mb-6 text-center">
+                            Complete property details have been sent to <strong>${data.email}</strong>
+                        </p>
+                        <div class="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl p-6 text-white mb-6">
+                            <h3 class="text-2xl font-bold mb-2">${listingDetails.address}</h3>
+                            <p class="text-3xl font-bold mb-4">${listingDetails.price}</p>
+                            <div class="grid grid-cols-4 gap-4">
+                                <div class="bg-white bg-opacity-20 rounded-lg p-3 text-sm">${listingDetails.beds} Beds</div>
+                                <div class="bg-white bg-opacity-20 rounded-lg p-3 text-sm">${listingDetails.baths} Baths</div>
+                                <div class="bg-white bg-opacity-20 rounded-lg p-3 text-sm">${listingDetails.sqft} sqft</div>
+                                <div class="bg-white bg-opacity-20 rounded-lg p-3 text-sm">Built ${listingDetails.yearBuilt}</div>
+                            </div>
+                        </div>
+                        <div class="bg-blue-50 rounded-lg p-6 mb-6">
+                            <h4 class="font-semibold text-gray-800 mb-2">Your Agent</h4>
+                            <p class="text-lg font-medium">${listingDetails.agentName}</p>
+                            <p class="text-gray-700">${listingDetails.agentPhone}</p>
+                            <p class="text-gray-700">${listingDetails.agentEmail}</p>
+                        </div>
+                        <button onclick="location.reload()" class="w-full text-blue-600 hover:text-blue-700 font-medium py-2">
+                            Submit another inquiry
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Admin panel handlers
+        document.getElementById('adminBtn').addEventListener('click', () => {
+            document.getElementById('adminPanel').classList.remove('hidden');
+        });
+
+        document.getElementById('closeAdmin').addEventListener('click', () => {
+            document.getElementById('adminPanel').classList.add('hidden');
+        });
+
+        document.getElementById('loginBtn').addEventListener('click', () => {
+            if (document.getElementById('adminPassword').value === ADMIN_PASSWORD) {
+                document.getElementById('passwordSection').classList.add('hidden');
+                document.getElementById('editSection').classList.remove('hidden');
+                // Load current values
+                document.getElementById('editAddress').value = listingDetails.address;
+                document.getElementById('editPrice').value = listingDetails.price;
+                document.getElementById('editMLS').value = listingDetails.mlsNumber;
+            } else {
+                alert('Incorrect password!');
+            }
+        });
+
+        document.getElementById('saveBtn').addEventListener('click', () => {
+            listingDetails.address = document.getElementById('editAddress').value;
+            listingDetails.price = document.getElementById('editPrice').value;
+            listingDetails.mlsNumber = document.getElementById('editMLS').value;
+            localStorage.setItem('listingDetails', JSON.stringify(listingDetails));
+            alert('Listing details updated!');
+            document.getElementById('adminPanel').classList.add('hidden');
+            location.reload();
+        });
+    </script>
+</body>
+</html>
