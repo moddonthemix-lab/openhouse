@@ -1,734 +1,409 @@
-import React, { useState } from 'react';
-import { Home, Mail, Phone, DollarSign, MapPin, Calendar, ArrowRight, Bed, Bath, Maximize, Settings, X, Save, Plus, Trash2 } from 'lucide-react';
-
-export default function OpenHouseSignIn() {
-  const getStoredListingDetails = () => {
-    const stored = typeof window !== 'undefined' ? localStorage.getItem('listingDetails') : null;
-    return stored ? JSON.parse(stored) : {
-      address: "123 Main Street, Portland, OR 97201",
-      price: "$749,000",
-      beds: "4",
-      baths: "3",
-      sqft: "2,450",
-      yearBuilt: "2015",
-      features: ["Updated Kitchen", "Hardwood Floors", "Fenced Yard", "2-Car Garage"],
-      description: "Beautiful home in prime location with modern updates throughout.",
-      mlsNumber: "12345678",
-      agentName: "Allegra Arnheim",
-      agentPhone: "(503) 869-3119",
-      agentEmail: "allegraarnheimproperties@gmail.com"
-    };
-  };
-
-  const [listingDetails, setListingDetails] = useState(getStoredListingDetails());
-  const [showAdmin, setShowAdmin] = useState(false);
-  const [adminPassword, setAdminPassword] = useState('');
-  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
-  const [tempListingDetails, setTempListingDetails] = useState(listingDetails);
-
-  const ADMIN_PASSWORD = 'openhouse2024'; // CHANGE THIS PASSWORD!
-
-  const [formData, setFormData] = useState({
-    name: '',
-    phone: '',
-    email: '',
-    budget: '',
-    area: '',
-    timeframe: '',
-    interestLevel: '',
-    hasAgent: '',
-    comments: ''
-  });
-  
-  const [submitted, setSubmitted] = useState(false);
-  const [errors, setErrors] = useState({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
-    }
-  };
-
-  const handleAdminLogin = () => {
-    if (adminPassword === ADMIN_PASSWORD) {
-      setIsAdminAuthenticated(true);
-      setTempListingDetails(listingDetails);
-    } else {
-      alert('Incorrect password!');
-    }
-  };
-
-  const handleAdminChange = (e) => {
-    const { name, value } = e.target;
-    setTempListingDetails(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleFeatureChange = (index, value) => {
-    const newFeatures = [...tempListingDetails.features];
-    newFeatures[index] = value;
-    setTempListingDetails(prev => ({
-      ...prev,
-      features: newFeatures
-    }));
-  };
-
-  const addFeature = () => {
-    setTempListingDetails(prev => ({
-      ...prev,
-      features: [...prev.features, '']
-    }));
-  };
-
-  const removeFeature = (index) => {
-    setTempListingDetails(prev => ({
-      ...prev,
-      features: prev.features.filter((_, i) => i !== index)
-    }));
-  };
-
-  const saveListingDetails = () => {
-    const cleanedFeatures = tempListingDetails.features.filter(f => f && f.trim());
-    const updatedDetails = {
-      ...tempListingDetails,
-      features: cleanedFeatures
-    };
-    setListingDetails(updatedDetails);
-    localStorage.setItem('listingDetails', JSON.stringify(updatedDetails));
-    setShowAdmin(false);
-    setIsAdminAuthenticated(false);
-    setAdminPassword('');
-    alert('Listing details updated successfully!');
-  };
-
-  const validateForm = () => {
-    const newErrors = {};
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Property Interest Form</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
     
-    if (!formData.name.trim()) newErrors.name = 'Name is required';
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email';
-    }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+    <!-- Settings Button -->
+    <button id="adminBtn" class="fixed top-4 right-4 bg-gray-800 hover:bg-gray-900 text-white p-3 rounded-full shadow-lg transition z-50">
+        ⚙️
+    </button>
 
-  const calculatePriority = () => {
-    let score = 50;
-    
-    if (formData.interestLevel === 'High') score += 30;
-    else if (formData.interestLevel === 'Medium') score += 15;
-    
-    if (formData.timeframe === 'asap') score += 25;
-    else if (formData.timeframe === '1-3-months') score += 20;
-    else if (formData.timeframe === '3-6-months') score += 10;
-    
-    if (formData.hasAgent === 'No') score += 20;
-    else if (formData.hasAgent === 'Not Sure') score += 10;
-    else if (formData.hasAgent === 'Yes') score -= 5;
-    
-    if (formData.comments.trim()) score += 5;
-    
-    let label = '❄️ COLD LEAD';
-    if (score >= 90) label = '🔥 HOT LEAD';
-    else if (score >= 70) label = '⭐ WARM LEAD';
-    else if (score >= 50) label = '📧 NURTURE LEAD';
-    
-    return { score, label };
-  };
-
-  const handleSubmit = async () => {
-    if (validateForm()) {
-      setIsSubmitting(true);
-      
-      const priority = calculatePriority();
-      const timestamp = new Date().toLocaleString();
-      
-      const submissionData = {
-        timestamp,
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone || 'Not provided',
-        budget: formData.budget || 'Not provided',
-        area: formData.area || 'Not provided',
-        timeframe: formData.timeframe || 'Not provided',
-        interestLevel: formData.interestLevel || 'Not provided',
-        hasAgent: formData.hasAgent || 'Not provided',
-        comments: formData.comments || 'None',
-        priorityLabel: priority.label,
-        score: priority.score,
-        listingAddress: listingDetails.address,
-        listingPrice: listingDetails.price,
-        listingBeds: listingDetails.beds,
-        listingBaths: listingDetails.baths,
-        listingSqft: listingDetails.sqft,
-        listingYear: listingDetails.yearBuilt,
-        listingFeatures: listingDetails.features.join(', '),
-        listingDescription: listingDetails.description,
-        mlsNumber: listingDetails.mlsNumber,
-        agentName: listingDetails.agentName,
-        agentPhone: listingDetails.agentPhone,
-        agentEmail: listingDetails.agentEmail
-      };
-      
-      console.log('Lead captured:', submissionData);
-      
-      // REPLACE WITH YOUR GOOGLE APPS SCRIPT URL
-      const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyefus1q5cux5-Z9WybIGHEBslNQWDtVjn_23mw0zBAJv8vslpkCTHeY4VU1yVGSlU/exec';
-      
-      try {
-        await fetch(GOOGLE_SCRIPT_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(submissionData)
-        });
-        
-        console.log('Data sent to Google Sheets successfully');
-        setSubmitted(true);
-      } catch (error) {
-        console.error('Error submitting form:', error);
-        setSubmitted(true);
-      } finally {
-        setIsSubmitting(false);
-      }
-    }
-  };
-
-  const resetForm = () => {
-    setSubmitted(false);
-    setFormData({
-      name: '',
-      phone: '',
-      email: '',
-      budget: '',
-      area: '',
-      timeframe: '',
-      interestLevel: '',
-      hasAgent: '',
-      comments: ''
-    });
-  };
-
-  if (showAdmin) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full max-h-screen overflow-y-auto">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <Settings className="w-8 h-8 text-gray-700" />
-              <h2 className="text-2xl font-bold text-gray-800">Admin Panel</h2>
-            </div>
-            <button onClick={() => {
-              setShowAdmin(false);
-              setIsAdminAuthenticated(false);
-              setAdminPassword('');
-            }} className="text-gray-500 hover:text-gray-700">
-              <X className="w-6 h-6" />
-            </button>
-          </div>
-
-          {!isAdminAuthenticated ? (
-            <div className="space-y-4">
-              <p className="text-gray-600">Enter password to edit listing details:</p>
-              <input
-                type="password"
-                value={adminPassword}
-                onChange={(e) => setAdminPassword(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleAdminLogin()}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                placeholder="Enter admin password"
-              />
-              <button
-                onClick={handleAdminLogin}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition"
-              >
-                Login
-              </button>
-              <p className="text-xs text-gray-500 text-center">Default password: openhouse2024</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Property Address</label>
-                <input
-                  type="text"
-                  name="address"
-                  value={tempListingDetails.address}
-                  onChange={handleAdminChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Price</label>
-                  <input
-                    type="text"
-                    name="price"
-                    value={tempListingDetails.price}
-                    onChange={handleAdminChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                  />
+    <!-- Main Form Container -->
+    <div id="mainForm" class="min-h-screen flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full">
+            <div class="flex items-center justify-center mb-6">
+                <div class="bg-blue-600 rounded-full p-4">
+                    <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                    </svg>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">MLS Number</label>
-                  <input
-                    type="text"
-                    name="mlsNumber"
-                    value={tempListingDetails.mlsNumber}
-                    onChange={handleAdminChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Square Feet</label>
-                  <input
-                    type="text"
-                    name="sqft"
-                    value={tempListingDetails.sqft}
-                    onChange={handleAdminChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Year Built</label>
-                  <input
-                    type="text"
-                    name="yearBuilt"
-                    value={tempListingDetails.yearBuilt}
-                    onChange={handleAdminChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Bedrooms</label>
-                  <input
-                    type="text"
-                    name="beds"
-                    value={tempListingDetails.beds}
-                    onChange={handleAdminChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Bathrooms</label>
-                  <input
-                    type="text"
-                    name="baths"
-                    value={tempListingDetails.baths}
-                    onChange={handleAdminChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Property Description</label>
-                <textarea
-                  name="description"
-                  value={tempListingDetails.description}
-                  onChange={handleAdminChange}
-                  rows={3}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none"
-                  placeholder="Brief description of the property..."
-                />
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="block text-sm font-medium text-gray-700">Key Features</label>
-                  <button
-                    onClick={addFeature}
-                    className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Add Feature
-                  </button>
-                </div>
-                <div className="space-y-2">
-                  {tempListingDetails.features.map((feature, index) => (
-                    <div key={index} className="flex gap-2">
-                      <input
-                        type="text"
-                        value={feature}
-                        onChange={(e) => handleFeatureChange(index, e.target.value)}
-                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                        placeholder={`Feature ${index + 1}`}
-                      />
-                      <button
-                        onClick={() => removeFeature(index)}
-                        className="px-3 py-2 bg-red-100 text-red-600 hover:bg-red-200 rounded-lg transition"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="border-t pt-4 mt-4">
-                <h3 className="text-sm font-medium text-gray-700 mb-3">Agent Contact Information</h3>
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-xs text-gray-600 mb-1">Agent Name</label>
-                    <input
-                      type="text"
-                      name="agentName"
-                      value={tempListingDetails.agentName}
-                      onChange={handleAdminChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs text-gray-600 mb-1">Agent Phone</label>
-                      <input
-                        type="text"
-                        name="agentPhone"
-                        value={tempListingDetails.agentPhone}
-                        onChange={handleAdminChange}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs text-gray-600 mb-1">Agent Email</label>
-                      <input
-                        type="email"
-                        name="agentEmail"
-                        value={tempListingDetails.agentEmail}
-                        onChange={handleAdminChange}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <button
-                onClick={saveListingDetails}
-                className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg transition flex items-center justify-center gap-2"
-              >
-                <Save className="w-5 h-5" />
-                Save Listing Details
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  if (submitted) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-3xl w-full max-h-screen overflow-y-auto">
-          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Mail className="w-10 h-10 text-green-600" />
-          </div>
-          <h2 className="text-3xl font-bold text-gray-800 mb-4 text-center">Thank You, {formData.name}!</h2>
-
-          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl p-6 text-white mb-6">
-            <h3 className="text-2xl font-bold mb-2">{listingDetails.address}</h3>
-            <p className="text-3xl font-bold mb-4">{listingDetails.price}</p>
-            
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-              <div className="bg-white bg-opacity-20 rounded-lg p-3">
-                <Bed className="w-5 h-5 mb-1" />
-                <p className="text-sm">{listingDetails.beds} Bedrooms</p>
-              </div>
-              <div className="bg-white bg-opacity-20 rounded-lg p-3">
-                <Bath className="w-5 h-5 mb-1" />
-                <p className="text-sm">{listingDetails.baths} Bathrooms</p>
-              </div>
-              <div className="bg-white bg-opacity-20 rounded-lg p-3">
-                <Maximize className="w-5 h-5 mb-1" />
-                <p className="text-sm">{listingDetails.sqft} sqft</p>
-              </div>
-              <div className="bg-white bg-opacity-20 rounded-lg p-3">
-                <Home className="w-5 h-5 mb-1" />
-                <p className="text-sm">Built {listingDetails.yearBuilt}</p>
-              </div>
             </div>
 
-            {listingDetails.mlsNumber && (
-              <p className="text-sm opacity-90 mb-2">MLS: {listingDetails.mlsNumber}</p>
-            )}
-          </div>
-
-          <div className="bg-gray-50 rounded-lg p-6 mb-6">
-            <h4 className="font-semibold text-gray-800 mb-3">Property Description</h4>
-            <p className="text-gray-700 mb-4">{listingDetails.description}</p>
-            
-            {listingDetails.features.length > 0 && (
-              <>
-                <h4 className="font-semibold text-gray-800 mb-3">Key Features</h4>
-                <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {listingDetails.features.map((feature, idx) => (
-                    <li key={idx} className="flex items-center gap-2 text-gray-700">
-                      <span className="w-1.5 h-1.5 bg-blue-600 rounded-full"></span>
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
-          </div>
-
-          <div className="bg-blue-50 rounded-lg p-6 mb-6">
-            <h4 className="font-semibold text-gray-800 mb-3">Your Showing Agent</h4>
-            <p className="text-gray-800 font-medium text-lg">Allegra Arnheim</p>
-            <div className="flex flex-col gap-1 mt-2 text-gray-700">
-              <p className="flex items-center gap-2">
-                <Phone className="w-4 h-4" />
-                (503) 869-3119
-              </p>
-              <p className="flex items-center gap-2">
-                <Mail className="w-4 h-4" />
-                allegraarnheimproperties@gmail.com
-              </p>
-            </div>
-          </div>
-
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-            <p className="text-green-800 text-sm">
-              <strong>Next Steps:</strong> We will contact you within 24 hours to answer any questions and schedule a showing if you'd like to see the property. Feel free to call or email anytime!
+            <h1 class="text-3xl font-bold text-center text-gray-800 mb-2">
+                Interested In This Property?
+            </h1>
+            <p class="text-center text-gray-600 mb-8">
+                Enter your information to receive complete property details and listing information
             </p>
-          </div>
 
-          <button
-            onClick={resetForm}
-            className="w-full text-blue-600 hover:text-blue-700 font-medium py-2"
-          >
-            Submit another inquiry
-          </button>
-        </div>
-      </div>
-    );
-  }
+            <div id="leadForm" class="space-y-5">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
+                    <input type="text" id="name" required
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                        placeholder="John Smith">
+                </div>
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <button
-        onClick={() => setShowAdmin(true)}
-        className="fixed top-4 right-4 bg-gray-800 hover:bg-gray-900 text-white p-3 rounded-full shadow-lg transition z-50"
-        title="Admin Panel"
-      >
-        <Settings className="w-5 h-5" />
-      </button>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                        <input type="tel" id="phone"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                            placeholder="(555) 123-4567">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
+                        <input type="email" id="email" required
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                            placeholder="john@example.com">
+                    </div>
+                </div>
 
-      <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full">
-        <div className="flex items-center justify-center mb-6">
-          <div className="bg-blue-600 rounded-full p-4">
-            <Home className="w-10 h-10 text-white" />
-          </div>
-        </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Budget Range</label>
+                    <select id="budget" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="">Select your budget</option>
+                        <option value="under-300k">Under $300,000</option>
+                        <option value="300k-500k">$300,000 - $500,000</option>
+                        <option value="500k-750k">$500,000 - $750,000</option>
+                        <option value="750k-1m">$750,000 - $1,000,000</option>
+                        <option value="1m-1.5m">$1,000,000 - $1,500,000</option>
+                        <option value="1.5m-2m">$1,500,000 - $2,000,000</option>
+                        <option value="over-2m">Over $2,000,000</option>
+                    </select>
+                </div>
 
-        <h1 className="text-3xl font-bold text-center text-gray-800 mb-2">
-          Interested In This Property?
-        </h1>
-        <p className="text-center text-gray-600 mb-8">
-          Enter your information to receive complete property details and listing information
-        </p>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Area(s) Looking In</label>
+                    <input type="text" id="area"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                        placeholder="e.g., Downtown, Suburbs, Waterfront">
+                </div>
 
-        <div className="space-y-5">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Full Name *
-            </label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              className={`w-full px-4 py-3 border ${errors.name ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition`}
-              placeholder="John Smith"
-            />
-            {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
-          </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Purchase Timeframe</label>
+                    <select id="timeframe" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="">Select timeframe</option>
+                        <option value="asap">ASAP (Ready to buy now)</option>
+                        <option value="1-3-months">1-3 Months</option>
+                        <option value="3-6-months">3-6 Months</option>
+                        <option value="6-12-months">6-12 Months</option>
+                        <option value="over-year">Over a Year</option>
+                        <option value="browsing">Just Browsing</option>
+                    </select>
+                </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <Phone className="w-4 h-4 inline mr-1" />
-                Phone Number
-              </label>
-              <input
-                type="tel"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-                placeholder="(555) 123-4567"
-              />
-            </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Interest Level</label>
+                    <div class="grid grid-cols-3 gap-3">
+                        <button type="button" data-interest="High" class="interest-btn py-3 px-4 rounded-lg font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">High</button>
+                        <button type="button" data-interest="Medium" class="interest-btn py-3 px-4 rounded-lg font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">Medium</button>
+                        <button type="button" data-interest="Low" class="interest-btn py-3 px-4 rounded-lg font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">Low</button>
+                    </div>
+                    <input type="hidden" id="interestLevel">
+                </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <Mail className="w-4 h-4 inline mr-1" />
-                Email Address *
-              </label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                className={`w-full px-4 py-3 border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition`}
-                placeholder="john@example.com"
-              />
-              {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
-            </div>
-          </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Do you currently have a real estate agent?</label>
+                    <div class="grid grid-cols-3 gap-3">
+                        <button type="button" data-agent="Yes" class="agent-btn py-3 px-4 rounded-lg font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">Yes</button>
+                        <button type="button" data-agent="No" class="agent-btn py-3 px-4 rounded-lg font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">No</button>
+                        <button type="button" data-agent="Not Sure" class="agent-btn py-3 px-4 rounded-lg font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">Not Sure</button>
+                    </div>
+                    <input type="hidden" id="hasAgent">
+                </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <DollarSign className="w-4 h-4 inline mr-1" />
-              Budget Range
-            </label>
-            <select
-              name="budget"
-              value={formData.budget}
-              onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-            >
-              <option value="">Select your budget</option>
-              <option value="under-300k">Under $300,000</option>
-              <option value="300k-500k">$300,000 - $500,000</option>
-              <option value="500k-750k">$500,000 - $750,000</option>
-              <option value="750k-1m">$750,000 - $1,000,000</option>
-              <option value="1m-1.5m">$1,000,000 - $1,500,000</option>
-              <option value="1.5m-2m">$1,500,000 - $2,000,000</option>
-              <option value="over-2m">Over $2,000,000</option>
-            </select>
-          </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Comments or Questions About This Property</label>
+                    <textarea id="comments" rows="4"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                        placeholder="Any questions, comments, or what you're looking for in a property?"></textarea>
+                    <p class="text-xs text-gray-500 mt-1">Optional - helps us serve you better</p>
+                </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <MapPin className="w-4 h-4 inline mr-1" />
-              Area(s) Looking In
-            </label>
-            <input
-              type="text"
-              name="area"
-              value={formData.area}
-              onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-              placeholder="e.g., Downtown, Suburbs, Waterfront"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <Calendar className="w-4 h-4 inline mr-1" />
-              Purchase Timeframe
-            </label>
-            <select
-              name="timeframe"
-              value={formData.timeframe}
-              onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-            >
-              <option value="">Select timeframe</option>
-              <option value="asap">ASAP (Ready to buy now)</option>
-              <option value="1-3-months">1-3 Months</option>
-              <option value="3-6-months">3-6 Months</option>
-              <option value="6-12-months">6-12 Months</option>
-              <option value="over-year">Over a Year</option>
-              <option value="browsing">Just Browsing</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Interest Level
-            </label>
-            <div className="grid grid-cols-3 gap-3">
-              {['High', 'Medium', 'Low'].map((level) => (
-                <button
-                  key={level}
-                  type="button"
-                  onClick={() => setFormData(prev => ({ ...prev, interestLevel: level }))}
-                  className={`py-3 px-4 rounded-lg font-medium transition ${
-                    formData.interestLevel === level
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {level}
+                <button id="submitBtn"
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 rounded-lg shadow-lg hover:shadow-xl flex items-center justify-center gap-2">
+                    Get Complete Property Details →
                 </button>
-              ))}
+
+                <p class="text-xs text-gray-500 text-center mt-4">
+                    By submitting, you agree to receive property information and follow-up communications.
+                </p>
             </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Do you currently have a real estate agent?
-            </label>
-            <div className="grid grid-cols-3 gap-3">
-              {['Yes', 'No', 'Not Sure'].map((option) => (
-                <button
-                  key={option}
-                  type="button"
-                  onClick={() => setFormData(prev => ({ ...prev, hasAgent: option }))}
-                  className={`py-3 px-4 rounded-lg font-medium transition ${
-                    formData.hasAgent === option
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {option}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Comments or Questions About This Property
-            </label>
-            <textarea
-              name="comments"
-              value={formData.comments}
-              onChange={handleChange}
-              rows={4}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition resize-none"
-              placeholder="Any questions, comments, or what you're looking for in a property?"
-            />
-            <p className="text-xs text-gray-500 mt-1">Optional - helps us serve you better</p>
-          </div>
-
-          <button
-            onClick={handleSubmit}
-            disabled={isSubmitting}
-            className={`w-full ${isSubmitting ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'} text-white font-semibold py-4 rounded-lg transition flex items-center justify-center gap-2 shadow-lg hover:shadow-xl`}
-          >
-            {isSubmitting ? 'Sending...' : 'Get Complete Property Details'}
-            <ArrowRight className="w-5 h-5" />
-          </button>
-
-          <p className="text-xs text-gray-500 text-center mt-4">
-            By submitting, you agree to receive property information and follow-up communications.
-          </p>
         </div>
-      </div>
     </div>
-  );
-}
+
+    <!-- Admin Panel -->
+    <div id="adminPanel" class="hidden min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center p-4 fixed inset-0 z-50">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full max-h-screen overflow-y-auto">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">⚙️ Admin Panel</h2>
+                <button id="closeAdmin" class="text-gray-500 hover:text-gray-700 text-2xl">×</button>
+            </div>
+            
+            <div id="passwordSection">
+                <p class="text-gray-600 mb-4">Enter password to edit listing details:</p>
+                <input type="password" id="adminPassword"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none mb-4"
+                    placeholder="Enter admin password">
+                <button id="loginBtn"
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg">
+                    Login
+                </button>
+                <p class="text-xs text-gray-500 text-center mt-2">Default password: openhouse2024</p>
+            </div>
+
+            <div id="editSection" class="hidden space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Property Address</label>
+                    <input type="text" id="editAddress" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Price</label>
+                        <input type="text" id="editPrice" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">MLS Number</label>
+                        <input type="text" id="editMLS" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Bedrooms</label>
+                        <input type="text" id="editBeds" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Bathrooms</label>
+                        <input type="text" id="editBaths" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Square Feet</label>
+                        <input type="text" id="editSqft" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Year Built</label>
+                    <input type="text" id="editYear" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                </div>
+                <button id="saveBtn"
+                    class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg">
+                    💾 Save Listing Details
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Screen -->
+    <div id="successScreen" class="hidden"></div>
+
+    <script>
+        // Configuration - CHANGE THESE VALUES
+        const ADMIN_PASSWORD = 'openhouse2024';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyefus1q5cux5-Z9WybIGHEBslNQWDtVjn_23mw0zBAJv8vslpkCTHeY4VU1yVGSlU/exec';
+
+        // Default listing details
+        let listingDetails = localStorage.getItem('listingDetails') 
+            ? JSON.parse(localStorage.getItem('listingDetails'))
+            : {
+                address: "123 Main Street, Portland, OR 97201",
+                price: "$749,000",
+                beds: "4",
+                baths: "3",
+                sqft: "2,450",
+                yearBuilt: "2015",
+                features: ["Updated Kitchen", "Hardwood Floors", "Fenced Yard"],
+                description: "Beautiful home in prime location.",
+                mlsNumber: "12345678"
+            };
+
+        // Button handlers for Interest Level
+        document.querySelectorAll('.interest-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.interest-btn').forEach(b => {
+                    b.classList.remove('bg-blue-600', 'text-white');
+                    b.classList.add('bg-gray-100', 'text-gray-700');
+                });
+                this.classList.remove('bg-gray-100', 'text-gray-700');
+                this.classList.add('bg-blue-600', 'text-white');
+                document.getElementById('interestLevel').value = this.dataset.interest;
+            });
+        });
+
+        // Button handlers for Agent Status
+        document.querySelectorAll('.agent-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.agent-btn').forEach(b => {
+                    b.classList.remove('bg-blue-600', 'text-white');
+                    b.classList.add('bg-gray-100', 'text-gray-700');
+                });
+                this.classList.remove('bg-gray-100', 'text-gray-700');
+                this.classList.add('bg-blue-600', 'text-white');
+                document.getElementById('hasAgent').value = this.dataset.agent;
+            });
+        });
+
+        // Form submission
+        document.getElementById('submitBtn').addEventListener('click', async function() {
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            
+            if (!name || !email) {
+                alert('Please fill in Name and Email');
+                return;
+            }
+            
+            const data = {
+                timestamp: new Date().toLocaleString(),
+                name: name,
+                email: email,
+                phone: document.getElementById('phone').value || 'Not provided',
+                budget: document.getElementById('budget').value || 'Not provided',
+                area: document.getElementById('area').value || 'Not provided',
+                timeframe: document.getElementById('timeframe').value || 'Not provided',
+                interestLevel: document.getElementById('interestLevel').value || 'Not provided',
+                hasAgent: document.getElementById('hasAgent').value || 'Not provided',
+                comments: document.getElementById('comments').value || 'None',
+                address: listingDetails.address,
+                price: listingDetails.price,
+                beds: listingDetails.beds,
+                baths: listingDetails.baths,
+                sqft: listingDetails.sqft,
+                yearBuilt: listingDetails.yearBuilt,
+                features: listingDetails.features,
+                description: listingDetails.description,
+                mlsNumber: listingDetails.mlsNumber,
+                agentName: "Allegra Arnheim",
+                agentPhone: "(503) 869-3119",
+                agentEmail: "allegraarnheimproperties@gmail.com"
+            };
+
+            // Calculate lead score
+            let score = 50;
+            if (data.interestLevel === 'High') score += 30;
+            else if (data.interestLevel === 'Medium') score += 15;
+            if (data.timeframe === 'asap') score += 25;
+            else if (data.timeframe === '1-3-months') score += 20;
+            if (data.hasAgent === 'No') score += 20;
+            else if (data.hasAgent === 'Not Sure') score += 10;
+
+            let label = '❄️ COLD LEAD';
+            if (score >= 90) label = '🔥 HOT LEAD';
+            else if (score >= 70) label = '⭐ WARM LEAD';
+            else if (score >= 50) label = '📧 NURTURE LEAD';
+
+            data.priorityLabel = label;
+            data.score = score;
+
+            console.log('Lead captured:', data);
+
+            // Send to Google Sheets
+            try {
+                await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+            } catch (error) {
+                console.error('Error:', error);
+            }
+
+            // Show success screen
+            showSuccessScreen(data);
+        });
+
+        function showSuccessScreen(data) {
+            document.getElementById('mainForm').classList.add('hidden');
+            document.getElementById('successScreen').classList.remove('hidden');
+            document.getElementById('successScreen').innerHTML = `
+                <div class="min-h-screen flex items-center justify-center p-4">
+                    <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-3xl w-full">
+                        <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <span class="text-4xl">✓</span>
+                        </div>
+                        <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Thank You, ${data.name}!</h2>
+                        <div class="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl p-6 text-white mb-6">
+                            <h3 class="text-2xl font-bold mb-2">${listingDetails.address}</h3>
+                            <p class="text-3xl font-bold mb-4">${listingDetails.price}</p>
+                            <div class="grid grid-cols-4 gap-4">
+                                <div class="bg-white bg-opacity-20 rounded-lg p-3 text-sm">${listingDetails.beds} Beds</div>
+                                <div class="bg-white bg-opacity-20 rounded-lg p-3 text-sm">${listingDetails.baths} Baths</div>
+                                <div class="bg-white bg-opacity-20 rounded-lg p-3 text-sm">${listingDetails.sqft} sqft</div>
+                                <div class="bg-white bg-opacity-20 rounded-lg p-3 text-sm">Built ${listingDetails.yearBuilt}</div>
+                            </div>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-6 mb-6">
+                            <h4 class="font-semibold text-gray-800 mb-3">Property Description</h4>
+                            <p class="text-gray-700 mb-4">${listingDetails.description}</p>
+                            <h4 class="font-semibold text-gray-800 mb-3">Key Features</h4>
+                            <ul class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                ${listingDetails.features.map(f => `<li class="flex items-center gap-2 text-gray-700"><span class="w-1.5 h-1.5 bg-blue-600 rounded-full"></span>${f}</li>`).join('')}
+                            </ul>
+                        </div>
+                        <div class="bg-blue-50 rounded-lg p-6 mb-6">
+                            <h4 class="font-semibold text-gray-800 mb-2">Your Showing Agent</h4>
+                            <p class="text-lg font-medium">Allegra Arnheim</p>
+                            <p class="text-gray-700">(503) 869-3119</p>
+                            <p class="text-gray-700">allegraarnheimproperties@gmail.com</p>
+                        </div>
+                        <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+                            <p class="text-green-800 text-sm">
+                                <strong>Next Steps:</strong> We will contact you within 24 hours to answer any questions and schedule a showing if you'd like to see the property. Feel free to call or email anytime!
+                            </p>
+                        </div>
+                        <button onclick="location.reload()" class="w-full text-blue-600 hover:text-blue-700 font-medium py-2">
+                            Submit another inquiry
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Admin panel handlers
+        document.getElementById('adminBtn').addEventListener('click', () => {
+            document.getElementById('adminPanel').classList.remove('hidden');
+        });
+
+        document.getElementById('closeAdmin').addEventListener('click', () => {
+            document.getElementById('adminPanel').classList.add('hidden');
+        });
+
+        document.getElementById('loginBtn').addEventListener('click', () => {
+            if (document.getElementById('adminPassword').value === ADMIN_PASSWORD) {
+                document.getElementById('passwordSection').classList.add('hidden');
+                document.getElementById('editSection').classList.remove('hidden');
+                document.getElementById('editAddress').value = listingDetails.address;
+                document.getElementById('editPrice').value = listingDetails.price;
+                document.getElementById('editMLS').value = listingDetails.mlsNumber;
+                document.getElementById('editBeds').value = listingDetails.beds;
+                document.getElementById('editBaths').value = listingDetails.baths;
+                document.getElementById('editSqft').value = listingDetails.sqft;
+                document.getElementById('editYear').value = listingDetails.yearBuilt;
+            } else {
+                alert('Incorrect password!');
+            }
+        });
+
+        document.getElementById('saveBtn').addEventListener('click', () => {
+            listingDetails.address = document.getElementById('editAddress').value;
+            listingDetails.price = document.getElementById('editPrice').value;
+            listingDetails.mlsNumber = document.getElementById('editMLS').value;
+            listingDetails.beds = document.getElementById('editBeds').value;
+            listingDetails.baths = document.getElementById('editBaths').value;
+            listingDetails.sqft = document.getElementById('editSqft').value;
+            listingDetails.yearBuilt = document.getElementById('editYear').value;
+            localStorage.setItem('listingDetails', JSON.stringify(listingDetails));
+            alert('Listing details updated!');
+            document.getElementById('adminPanel').classList.add('hidden');
+            location.reload();
+        });
+
+        document.getElementById('adminPassword').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('loginBtn').click();
+            }
+        });
+    </script>
+</body>
+</html>
